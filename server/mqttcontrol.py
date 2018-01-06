@@ -1,6 +1,7 @@
 """
 MQTT Control
 (c) 2016 Simon Leiner
+(c) 2018 Bastian Mäuser
 licensed under the GNU Public License, version 2
 
 See the class description for a description of what this module does.
@@ -121,7 +122,7 @@ class MQTTControl:
                            ))
             self.stop_running_show()  # stop any running show
             self.start_show(show_name, parameters)
-        if command == "startnojson":
+        if command == "startnojson": #FHEM Compatiblity Mode
             # parse parameters
             if (show_name == "solidcolor"):
                 if payload == "":
@@ -131,11 +132,19 @@ class MQTTControl:
                     g_color = int(payload[2:4],16)
                     b_color = int(payload[4:6],16)
                     logger.debug("R:" + str(r_color) + " G:" + str(g_color) + " B:" + str(b_color))
-                except (InvalidStrip, InvalidConf, InvalidParameters) as error_message:
+                except (InvalidParameters) as error_message:
                     logger.error(error_message)
                     self.start_show('idle', {})
                     return
                 payload = "{\"color\":["+str(r_color)+","+str(g_color)+","+str(b_color)+"]}"
+            elif (show_name == "twocolorblend"):
+                if payload == "":
+                    payload = "{\"color1\":[200,0,0],\"color2\":[0,0,230]}"
+                logger.debug("tcblend: " + payload)
+            elif (show_name == "cylone"):
+                if payload == "":
+                    payload = "{\"color\":[255,0,0],\"highlight\":[255,255,255],\"radius\":7}"
+                logger.debug("Cylone: " + payload)
             parameters = helpers.mqtt.parse_json_safely(payload)
             logger.debug(
                 """for show: \"{show}\":
